@@ -6,7 +6,7 @@ from aqt import gui_hooks
 from aqt import mw
 import random
 import re
-from bs4 import BeautifulSoup, Tag
+# from bs4 import BeautifulSoup, Tag
 
 addon = mw.addonManager.addonFromModule(__name__)
 base="/_addons/"+addon
