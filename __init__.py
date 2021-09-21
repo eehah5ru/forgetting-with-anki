@@ -5,30 +5,43 @@ import aqt
 from aqt import gui_hooks
 from aqt import mw
 import random
+import re
+from bs4 import BeautifulSoup, Tag
+
+addon = mw.addonManager.addonFromModule(__name__)
+base="/_addons/"+addon
+
+# add the assests folder to the media server
+mw.addonManager.setWebExports(__name__, r"assets/.+(\.svg|\.png|\.css|\.woff|\woff2|\.jpeg|\.gif|\.tiff|\.bmp|\.jpg|\.js|\.TTF|\.ttf|\.otf)")
 
 # inject css
 # https://github.com/ShoroukAziz/Beautify-Anki/blob/master/__init__.py
 #
 # webview hook:
 # see details: https://github.com/ankitects/anki/blob/main/qt/tools/genhooks_gui.py
-# def on_webview_will_set_content(web_content: aqt.webview.WebContent,
-#                                 context):
-#     if not isinstance(context, aqt.reviewer.Reviewer):
-#         # not reviewer, do not modify content
-#         return
+def on_webview_will_set_content(web_content: aqt.webview.WebContent,
+                                context):
 
-#     # reviewer, perform changes to content
-#     context: aqt.reviewer.Reviewer
+    if not isinstance(context, aqt.reviewer.Reviewer):
+        # not reviewer, do not modify content
+        return
 
-#     note = mw.reviewer.card.note()
-#     if 'color' in note.keys():
-#         color = note['color']
-#         web_content.head += f"<style>.card {{ background-color: {color}; }}</style>"
-#         stderr.write(web_content.body)
-#     # web_content.body += f"<style>.card {{ background-color: cyan; }}</style>"
+    # reviewer, perform changes to content
+    context: aqt.reviewer.Reviewer
+
+    web_content.css.append(base + "/assets/main.css")
+    web_content.js.append(base + "/assets/vendor/jquery-3.6.0.min.js")
+    web_content.js.append(base + "/assets/main.js")
+    # note = mw.reviewer.card.note()
+
+    # if 'color' in note.keys():
+    #     color = note['color']
+    #     web_content.head += f"<style>.card {{ background-color: {color}; }}</style>"
+    #     stderr.write(web_content.body)
+    # web_content.body += f"<style>.card {{ background-color: cyan; }}</style>"
 
 # # register hook
-# gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
+gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
 
 def has_color(note):
     return "color" in note.keys()
@@ -89,13 +102,7 @@ def mk_random_gradients(num):
 
     return ", ".join(gradients)
 
-#
-# hook
-#
-def on_card_did_render(output: TemplateRenderOutput, context: TemplateRenderContext):
-    # # let's uppercase the characters of the front text
-    # output.question_text = output.question_text.upper()
-
+def inject_gradient(output: TemplateRenderOutput, context: TemplateRenderContext):
     if not has_color(context.note()):
         stderr.write('no color field!\n')
         return
@@ -114,6 +121,43 @@ def on_card_did_render(output: TemplateRenderOutput, context: TemplateRenderCont
     output.question_text = f"<style>.forgetting {{ {bkg_field}: {color}; }}</style>" + output.question_text
     output.answer_text += f"<style>.forgetting {{ {bkg_field}: {color}; }}</style>"
 
+
+#
+# modify play button
+#
+def has_play_button(content):
+    return 'replay-button' in content
+
+def random_eye_path():
+    eye_num = random.choice(range(1, 6))       # num of eyes
+    return base + f"/assets/images/eye-0{eye_num}.gif"
+
+
+def inject_eye(output: TemplateRenderOutput, context: TemplateRenderContext):
+    # to the question
+    # if not has_play_button(output.question_text):
+    #     stderr.write("no play button: " + output.question_text)
+    #     return
+
+    eye_path = random_eye_path()
+
+    # soup = BeautifulSoup(output.question_text)
+    # for svg in soup.findAll(".playImage"):
+    #     img = Tag(soup, 'img')
+    #     svg.replaceWith(img)
+
+    # output.question_text = str(soup)
+
+    injection = f"<script>(function() {{ injectEyes('{eye_path}');}})();</script>"
+    output.question_text += injection
+    output.answer_text += injection
+
+#
+# hook
+#
+def on_card_did_render(output: TemplateRenderOutput, context: TemplateRenderContext):
+    inject_gradient(output, context)
+    inject_eye(output, context)
 
 # register our function to be called when the hook fires
 hooks.card_did_render.append(on_card_did_render)

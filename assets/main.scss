@@ -1,0 +1,27 @@
+@mixin wide {
+  width: 100vw;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.forgetting {
+  color: gold;
+
+  h1 {
+    margin-left: 0;
+    margin-right: 0;
+    width: auto;
+    max-width: 100vw;
+    overflow: hidden;
+  }
+}
+
+.forgetting.pinChatMessage {
+  .forgetting-question {
+    // @include wide;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    width: auto;
+    text-align: left;
+  }
+}
