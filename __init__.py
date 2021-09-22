@@ -1,6 +1,7 @@
 from sys import stderr, stdout
 from anki import hooks
 from anki.hooks import wrap
+from anki import version as anki_version
 import aqt
 from aqt.webview import AnkiWebView
 from aqt import mw
@@ -8,6 +9,16 @@ import random
 import re
 # from bs4 import BeautifulSoup, Tag
 
+#
+# anki version checker
+#
+# from: https://github.com/ijgnd/anki__editor__apply__font_color__background_color__custom_class__custom_style/blob/95763a4578f527f2e46f05ece90bd5296eed1ee7/src/vars.py
+def is_old_anki():
+    return tuple(int(i) for i in anki_version.split(".")) < (2, 1, 20)
+
+#
+# base pathes
+#
 addon = mw.addonManager.addonFromModule(__name__)
 base="../_addons/" + addon
 
@@ -69,9 +80,10 @@ def addForgettingAssets(self, body, css=None, js=None, head="", _old=None):
     result = _old(self, body, css, js, head)
     return result
 
-# add hook via monkey patching.
+# add hook via monkey patching for anki < 2.1.20
 # details here: https://addon-docs.ankiweb.net/monkey-patching.html
-AnkiWebView.stdHtml = wrap(AnkiWebView.stdHtml, addForgettingAssets, "around")
+if is_old_anki():
+    AnkiWebView.stdHtml = wrap(AnkiWebView.stdHtml, addForgettingAssets, "around")
 
 
 # # # register hook
