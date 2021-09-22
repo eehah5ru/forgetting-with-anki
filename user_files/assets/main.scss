@@ -4,8 +4,36 @@
   margin-right: 1rem;
 }
 
+@mixin xy-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  min-height: 100vh;
+}
+
+@mixin watch-video {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10vw;
+  font-style: italic;
+  text-align: center;
+  padding: 1vw;
+  border: red 1vw solid;
+}
+
+.card {
+  margin: 0;
+}
+
 .forgetting {
-  color: gold;
+  color: blue;
+  text-align: left;
+
+  display: flex;
 
   h1 {
     margin-left: 0;
@@ -14,14 +42,133 @@
     max-width: 100vw;
     overflow: hidden;
   }
+
+  //
+  // default question and answer styles
+  //
+  .forgetting-question,
+  .forgetting-answer {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  //
+  // watch video sign
+  //
+
+  // disable by default
+  .watchVideoQuestion,
+  .watchVideoAnswer {
+    display: none;
+  }
+
+  &.videoQuestion,
+  &.videoAnswer {
+    position: relative;
+    min-height: 100vh;
+    min-width: 100vw;
+  }
+
+  &.videoQuestion {
+    .watchVideoQuestion {
+      @include watch-video;
+    }
+  }
+
+  &.videoAnswer {
+    .watchVideoAnswer {
+      @include watch-video;
+    }
+
+  }
 }
 
 .forgetting.pinChatMessage {
+  @include xy-center;
+
   .forgetting-question {
     // @include wide;
     margin-left: 1rem;
     margin-right: 1rem;
-    width: auto;
+    width: 50vw;
+    text-align: justify;
+    font-size: 2vw;
+    font-weight: bold;
+
+    border: blue 0.4vw solid;
+    padding: 0.4vw;
+
+  }
+
+  .forgetting-answer {
+    margin-left: 1rem;
+    margin-right: 1rem;
     text-align: left;
+    width: 50vw;
   }
 }
+
+.forgetting.airportLand {
+  @include xy-center;
+
+  &.question-container {
+    background: gold;
+  }
+
+  .forgetting-question {
+  }
+
+  .forgetting-answer {
+    color: blue;
+    text-align: justify;
+    font-size: 10vw;
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
+
+.forgetting.lostArchive {
+  @include xy-center;
+
+  .forgetting-answer {
+    font-size: 10vw;
+    text-align: justify;
+
+  }
+}
+
+.forgetting.deleteMessage {
+  @include xy-center;
+
+  .forgetting-question {
+    font-style: italic;
+    font-size: 2vw;
+    padding: 0.6vw;
+    border: blue 0.2vw solid;
+  }
+}
+
+// .card {
+//   font-family: arial;
+//   font-size: 20px;
+//   text-align: center;
+//   color: black;
+//  margin: 0;
+// }
+
+// .forgetting {
+//  min-width: 100vw;
+//  height: 100vh;
+// }
+
+// .forgetting-question {
+//  padding-top: 2rem;
+//  width: 50vw;
+//  margin-left: 25vw;
+// }
+
+// .forgetting-answer {
+//  padding-top: 2rem;
+//  width: 50vw;
+//  margin-left: 25vw;
+// }
