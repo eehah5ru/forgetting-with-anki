@@ -1,47 +1,81 @@
 from sys import stderr, stdout
 from anki import hooks
-from anki.template import TemplateRenderContext, TemplateRenderOutput
+from anki.hooks import wrap
 import aqt
-from aqt import gui_hooks
+from aqt.webview import AnkiWebView
 from aqt import mw
 import random
 import re
 # from bs4 import BeautifulSoup, Tag
 
 addon = mw.addonManager.addonFromModule(__name__)
-base="/_addons/"+addon
+base="../_addons/" + addon
 
 # add the assests folder to the media server
-mw.addonManager.setWebExports(__name__, r"assets/.+(\.svg|\.png|\.css|\.woff|\woff2|\.jpeg|\.gif|\.tiff|\.bmp|\.jpg|\.js|\.TTF|\.ttf|\.otf)")
+mw.addonManager.setWebExports(__name__, r".+(\.svg|\.png|\.css|\.woff|\woff2|\.jpeg|\.gif|\.tiff|\.bmp|\.jpg|\.js|\.TTF|\.ttf|\.otf)")
 
 # inject css
 # https://github.com/ShoroukAziz/Beautify-Anki/blob/master/__init__.py
 #
 # webview hook:
 # see details: https://github.com/ankitects/anki/blob/main/qt/tools/genhooks_gui.py
-def on_webview_will_set_content(web_content: aqt.webview.WebContent,
-                                context):
+# def on_webview_will_set_content(web_content,
+#                                 context):
 
-    if not isinstance(context, aqt.reviewer.Reviewer):
-        # not reviewer, do not modify content
-        return
+#     if not isinstance(context, aqt.reviewer.Reviewer):
+#         # not reviewer, do not modify content
+#         return
 
-    # reviewer, perform changes to content
-    context: aqt.reviewer.Reviewer
+#     # reviewer, perform changes to content
+#     context: aqt.reviewer.Reviewer
 
-    web_content.css.append(base + "/assets/main.css")
-    web_content.js.append(base + "/assets/vendor/jquery-3.6.0.min.js")
-    web_content.js.append(base + "/assets/main.js")
-    # note = mw.reviewer.card.note()
+#     web_content.css.append(base + "/assets/main.css")
+#     web_content.js.append(base + "/assets/vendor/jquery-3.6.0.min.js")
+#     web_content.js.append(base + "/assets/main.js")
+#     # note = mw.reviewer.card.note()
 
-    # if 'color' in note.keys():
-    #     color = note['color']
-    #     web_content.head += f"<style>.card {{ background-color: {color}; }}</style>"
-    #     stderr.write(web_content.body)
-    # web_content.body += f"<style>.card {{ background-color: cyan; }}</style>"
+#     # if 'color' in note.keys():
+#     #     color = note['color']
+#     #     web_content.head += f"<style>.card {{ background-color: {color}; }}</style>"
+#     #     stderr.write(web_content.body)
+#     # web_content.body += f"<style>.card {{ background-color: cyan; }}</style>"
 
-# # register hook
-gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
+# what is wrapping
+# def wrap(old, new, pos="after"):
+#     "Override an existing function."
+#     def repl(*args, **kwargs):
+#         if pos == "after":
+#             old(*args, **kwargs)
+#             return new(*args, **kwargs)
+#         elif pos == "before":
+#             new(*args, **kwargs)
+#             return old(*args, **kwargs)
+#         else:
+#             return new(_old=old, *args, **kwargs)
+
+# target signature: def stdHtml(self, body, css=None, js=None, head=""):
+def addForgettingAssets(self, body, css=None, js=None, head="", _old=None):
+    if css is None:
+        css = []
+
+    if js is None:
+        js = []
+
+    css.append(base + "/user_files/assets/main.css")
+
+    js.append(base + "/user_files/assets/vendor/jquery-3.6.0.min.js")
+    js.append(base + "/user_files/assets/main.js")
+
+    result = _old(self, body, css, js, head)
+    return result
+
+# add hook via monkey patching.
+# details here: https://addon-docs.ankiweb.net/monkey-patching.html
+AnkiWebView.stdHtml = wrap(AnkiWebView.stdHtml, addForgettingAssets, "around")
+
+
+# # # register hook
+# gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
 
 def has_color(note):
     return "color" in note.keys()
@@ -102,7 +136,7 @@ def mk_random_gradients(num):
 
     return ", ".join(gradients)
 
-def inject_gradient(output: TemplateRenderOutput, context: TemplateRenderContext):
+def inject_gradient(output, context):
     if not has_color(context.note()):
         stderr.write('no color field!\n')
         return
@@ -133,7 +167,7 @@ def random_eye_path():
     return base + f"/assets/images/eye-0{eye_num}.gif"
 
 
-def inject_eye(output: TemplateRenderOutput, context: TemplateRenderContext):
+def inject_eye(output, context):
     # to the question
     # if not has_play_button(output.question_text):
     #     stderr.write("no play button: " + output.question_text)
@@ -155,9 +189,9 @@ def inject_eye(output: TemplateRenderOutput, context: TemplateRenderContext):
 #
 # hook
 #
-def on_card_did_render(output: TemplateRenderOutput, context: TemplateRenderContext):
+def on_card_did_render(output, context):
     inject_gradient(output, context)
     inject_eye(output, context)
 
 # register our function to be called when the hook fires
-hooks.card_did_render.append(on_card_did_render)
+# hooks.card_did_render.append(on_card_did_render)
