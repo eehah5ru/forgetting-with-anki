@@ -4,9 +4,14 @@ from anki.hooks import wrap
 from anki import version as anki_version
 import aqt
 from aqt.webview import AnkiWebView
+from aqt.toolbar import Toolbar
+from aqt.reviewer import Reviewer
 from aqt import mw
+from aqt.main import AnkiQt
 import random
 import re
+import os
+import json
 # from bs4 import BeautifulSoup, Tag
 
 #
@@ -84,6 +89,60 @@ def addForgettingAssets(self, body, css=None, js=None, head="", _old=None):
 # details here: https://addon-docs.ankiweb.net/monkey-patching.html
 if is_old_anki():
     AnkiWebView.stdHtml = wrap(AnkiWebView.stdHtml, addForgettingAssets, "around")
+
+
+#
+#
+# exit when done
+#
+#
+def onNextCard(self, _old=None):
+    r = _old(self)
+    if (os.environ.get('REAL_FORGETTING', None)) and (mw.state == "overview"):
+        mw.unloadProfileAndExit();
+    return r
+
+if is_old_anki():
+    Reviewer.nextCard = wrap(Reviewer.nextCard, onNextCard, "around")
+
+#
+#
+# remove edit and more buttons
+#
+#
+def removeEditAndMoreButtons(self, _old=None):
+    r = _old(self)
+    if not (os.environ.get('REAL_FORGETTING', None)):
+        return r
+
+    r += "<style>td.stat button {visibility:hidden; }</style>"
+    return r
+
+if is_old_anki():
+    Reviewer._bottomHTML = wrap(Reviewer._bottomHTML, removeEditAndMoreButtons, "around")
+
+#
+#
+# remove toolbar
+#
+#
+# def hideToolbar(self, _old=None):
+#     raise "aaa"
+
+def changeLayout():
+    # Toolbar._body = "forgetting!"
+    # raise "aaa"
+    if os.environ.get('REAL_FORGETTING', None):
+        mw.bottomWeb.stdHtml("")
+        mw.toolbar.web.stdHtml("")
+        mw.col.decks.select(mw.col.decks.id("forgetting"))
+        mw.moveToState("review")
+
+if is_old_anki():
+    # Toolbar.draw = wrap(Toolbar.draw, hideToolbar, "around")
+    # Toolbar._body += "forgetting!"
+    hooks.addHook("profileLoaded", changeLayout)
+    # AnkiQt.setupMainWindow = wrap(AnkiQt.setupMainWindow, changeLayout, "around")
 
 
 # # # register hook
