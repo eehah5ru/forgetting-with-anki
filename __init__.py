@@ -77,6 +77,9 @@ def addForgettingAssets(self, body, css=None, js=None, head="", _old=None):
     if js is None:
         js = []
 
+    if isinstance(js, str):
+        js = [js]
+
     css.append(base + "/user_files/assets/main.css")
 
     js.append(base + "/user_files/assets/vendor/jquery-3.6.0.min.js")
@@ -129,13 +132,51 @@ if is_old_anki():
 # def hideToolbar(self, _old=None):
 #     raise "aaa"
 
+def shuffleCards():
+    deckName = None
+    deckNames = mw.col.decks.allNames()
+    if 'forgetting' in deckNames:
+        deckName = 'forgetting'
+    elif 'Default' in deckNames:
+        deckName = 'Default'
+    else:
+        raise "unknown deck name. nothing to choose to forget..."
+
+    cids = mw.col.decks.cids(mw.col.decks.id(deckName))
+    (pmin, pmax) = mw.col.db.first(
+            "select min(due), max(due) from cards where type=0 and odid=0")
+    pmin = pmin or 0
+    pmax = pmax or 0
+
+    # mw.deckBrowser.model.beginReset()
+    mw.checkpoint("shuffleCards")
+    mw.col.sched.sortCards(
+        cids, start=pmin, step=pmax,
+        shuffle=True, shift=False)
+    # self.search()
+    mw.requireReset()
+    # mw.deckBrowser.model.endReset()
+
+
+
 def changeLayout():
     # Toolbar._body = "forgetting!"
     # raise "aaa"
     if os.environ.get('REAL_FORGETTING', None):
         mw.bottomWeb.stdHtml("")
         mw.toolbar.web.stdHtml("")
-        mw.col.decks.select(mw.col.decks.id("forgetting"))
+
+        deckName = None
+        deckNames = mw.col.decks.allNames()
+        if 'forgetting' in deckNames:
+            deckName = 'forgetting'
+        elif 'Default' in deckNames:
+            deckName = 'Default'
+        else:
+            raise "unknown deck name. nothing to choose to forget..."
+
+        mw.col.decks.select(mw.col.decks.id(deckName))
+        shuffleCards()
         mw.moveToState("review")
 
 if is_old_anki():
