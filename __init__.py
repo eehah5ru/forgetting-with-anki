@@ -12,6 +12,8 @@ import random
 import re
 import os
 import json
+from threading import Thread
+import time
 # from bs4 import BeautifulSoup, Tag
 
 #
@@ -185,6 +187,45 @@ if is_old_anki():
     hooks.addHook("profileLoaded", changeLayout)
     # AnkiQt.setupMainWindow = wrap(AnkiQt.setupMainWindow, changeLayout, "around")
 
+
+#
+#
+# WATCHDOG - save timestamp
+#
+#
+
+MAX_CARD_DELAY = 10             # seconds
+last_card_timestamp = -1
+
+def saveCurrentTimestamp():
+    last_card_timestamp = int(time.time())
+
+    home_dir = os.environ.get('HOME', "/tmp")
+
+    with open(f"{home_dir}/.anki/last_card_timestamp.txt", 'w') as f:
+        f.write(str(int(time.time())))
+
+def onShowAnswer():
+    saveCurrentTimestamp()
+
+def onShowQuestion():
+    saveCurrentTimestamp()
+
+# def watchdog():
+#     current_time = int(time.time())
+#     if current_time - last_card_timestamp > MAX_CARD_DELAY:
+#         mw.unloadProfileAndExit();
+#         return
+#     time.sleep(1)
+
+# def startWatchdog():
+#     thread = Thread(target = watchdog, args = ())
+#     thread.start()
+
+if is_old_anki() and os.environ.get('REAL_FORGETTING', None):
+    hooks.addHook("showAnswer", onShowAnswer)
+    hooks.addHook("showQuestion", onShowQuestion)
+    # hooks.addHook("profileLoaded", startWatchdog)
 
 # # # register hook
 # gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
