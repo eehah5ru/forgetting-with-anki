@@ -185,6 +185,122 @@
   }
 }
 
+//
+//
+// revolution time styles
+//
+//
+
+%big-red-caption {
+  @include xy-center;
+
+  width: 100%;
+  text-align: center;
+  font-size: 20vw;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 0.6vw;
+  color: red;
+}
+
+.forgetting.a133bpm,
+.forgetting.a1kHz,
+.forgetting.a60bpm,
+.forgetting.everyDay,
+.forgetting.halfOfAnHour,
+.forgetting.dummy {
+  .forgetting-question {
+    @extend %big-red-caption;
+  }
+}
+
+//
+//
+// rockets styles
+//
+//
+.forgetting.rockets,
+.forgetting.rocket7,
+.forgetting.rocket134 {
+  .forgetting-question {
+    @extend %big-red-caption;
+    font-size: 10vw;
+
+    // span {
+    //   color: blue;
+    // }
+  }
+}
+
+//
+//
+// call to action styles
+//
+//
+.forgetting.phonesDeleteInfo {
+  .forgetting-question,
+  .forgetting-answer {
+    @extend %big-red-caption;
+    font-size: 5vw;
+    text-align: left;
+  }
+
+  .forgetting-answer {
+    text-align: right;
+  }
+}
+
+//
+//
+// railWar
+//
+//
+.forgetting.railWar {
+  .forgetting-answer {
+    @extend %big-red-caption;
+    font-size: 10vw;
+    text-align: left;
+  }
+}
+
+//
+//
+// infrastructural time
+//
+//
+.forgetting.infrastructuralTime {
+  .forgetting-question {
+    @extend %big-red-caption;
+    font-size: 5vw;
+    text-align: justify;
+  }
+}
+
+//
+//
+// technological obsessions
+//
+//
+.forgetting.technologicalObsession {
+  @include xy-center;
+
+  .forgetting-answer,
+  .forgetting-question {
+    // @extend %big-red-caption;
+    font-weight: bold;
+    font-size: 7vw;
+    text-align: center;
+    width: 50vw;
+    margin-left: 1rem;
+    margin-right: 1rem;
+
+    border: blue 0.4vw solid;
+    padding: 0.4vw;
+
+
+  }
+}
+
 // .card {
 //   font-family: arial;
 //   font-size: 20px;
