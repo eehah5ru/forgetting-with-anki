@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# pi version
 USER=pi
 HOST=pi4.local
 
