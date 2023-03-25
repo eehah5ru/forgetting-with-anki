@@ -5,6 +5,7 @@ from anki import version as anki_version
 import aqt
 from aqt.webview import AnkiWebView
 from aqt.toolbar import Toolbar
+from aqt.toolbar import BottomBar
 from aqt.reviewer import Reviewer
 from aqt import mw
 from aqt.main import AnkiQt
@@ -103,7 +104,7 @@ if is_old_anki():
 #
 def onNextCard(self, _old=None):
     r = _old(self)
-    if (os.environ.get('REAL_FORGETTING', None)) and (mw.state == "overview"):
+    if (os.environ.get('REAL_FORGETTING', None) == '1') and (mw.state == "overview"):
         mw.unloadProfileAndExit();
     return r
 
@@ -117,7 +118,7 @@ if is_old_anki():
 #
 def removeEditAndMoreButtons(self, _old=None):
     r = _old(self)
-    if not (os.environ.get('REAL_FORGETTING', None)):
+    if not (os.environ.get('REAL_FORGETTING', None) == '1'):
         return r
 
     r += "<style>td.stat button {visibility:hidden; }</style>"
@@ -125,6 +126,8 @@ def removeEditAndMoreButtons(self, _old=None):
 
 if is_old_anki():
     Reviewer._bottomHTML = wrap(Reviewer._bottomHTML, removeEditAndMoreButtons, "around")
+
+
 
 #
 #
@@ -159,12 +162,68 @@ def shuffleCards():
     mw.requireReset()
     # mw.deckBrowser.model.endReset()
 
+#
+#
+# CHANGE LAYOUT
+#
+#
+
+def changeButtonsSize(self, _old=None):
+    r = _old(self)
+    # if not (os.environ.get('REAL_FORGETTING', None) == '1'):
+    #     return r
+
+    # raise Exception(r)
+
+    r += """
+    <style>
+    /* All buttons at the bottom of the review screen
+    (including the "Edit" and "More" button) */
+    button {
+        height: 40px;
+        border: solid 2px rgba(100, 100, 100, 0.2)!important;
+        //border-top: solid 0.5px #878787!important;
+        border-radius: 0px !important;
+        -webkit-appearance: none;
+        cursor: pointer;
+        margin: 2px 6px 6px !important;
+        box-shadow: 0px 0px 1.5px .2px #000000!important;
+        -webkit-box-shadow: 0px 0px 1.5px .2px #000000!important;
+        font-size: 30px;
+    }
+    .nightMode button {
+        box-shadow: 0px 0px 2.5px .5px #000000!important;
+        -webkit-box-shadow: 0px 0px 2.5px .5px #000000!important;
+        background: #3a3a3a!important;
+    }
+    %s
+    </style>
+    """
+    return r
+
+if is_old_anki():
+    Reviewer._bottomHTML = wrap(Reviewer._bottomHTML, changeButtonsSize, "around")
+
+def changeAnswerButtons(self, _old=None):
+    r = _old(self)
+
+    # raise Exception(r)
+
+    # r += 'aaaaa'
+
+    return r
+
+if is_old_anki():
+    Reviewer._answerButtons = wrap(Reviewer._answerButtons, changeAnswerButtons, "around")
 
 
+#
+# CHANGE LAYOUT ENTRY POINT
+#
 def changeLayout():
     # Toolbar._body = "forgetting!"
     # raise "aaa"
-    if os.environ.get('REAL_FORGETTING', None):
+    if os.environ.get('REAL_FORGETTING', None) == '1':
         mw.bottomWeb.stdHtml("")
         mw.toolbar.web.stdHtml("")
 
@@ -222,7 +281,7 @@ def onShowQuestion():
 #     thread = Thread(target = watchdog, args = ())
 #     thread.start()
 
-if is_old_anki() and os.environ.get('REAL_FORGETTING', None):
+if is_old_anki() and (os.environ.get('REAL_FORGETTING', None) == '1'):
     hooks.addHook("showAnswer", onShowAnswer)
     hooks.addHook("showQuestion", onShowQuestion)
     # hooks.addHook("profileLoaded", startWatchdog)
